@@ -9,15 +9,15 @@
 - ユーザーが使いやすいシミュレータ環境の構築
 - Autowareのパラメータを調整し、自動運転AIチャレンジのコースを完走する
 # PC環境
--  OS: Windows 11
+- OS: Windows 11
 - CPU: Intel(R) Core(TM) Ultra 7 155H (3.80 GHz)
 - NVIDIA GPUなし
 - RAM: 32 GB
 - AI Challengeの仮想環境 WSL
-　　- OS: Ubuntu 22.04 LTS
-　　- プロセッサ数: 22
-　　- メモリサイズ: 16GB
-　　-  スワップサイズ: 32GB
+  - OS: Ubuntu 22.04 LTS
+  - プロセッサ数: 22
+  - メモリサイズ: 16GB
+  - スワップサイズ: 32GB
 
 # シミュレータのインストール
 - [自動運転AIチャレンジ 2025 ソースコード一式 GitHub リポジトリ ](https://github.com/AutomotiveAIChallenge/aichallenge-2025)
@@ -68,22 +68,6 @@ cd ~/aichallenge-2025
 ./pkill_all.bash # kill all processes
 ~~~
 
-
-### rqt　ROSトピックやノードをモニターするための GUIツール
-
-~~~ bash
-# if rqt is not installed, install it
-if ! command -v rqt &> /dev/null; then
-    echo "rqt is not installed. Installing now..."
-    sudo apt update && sudo apt install -y ros-humble-rqt
-    # Install all additional rqt plugins]
-    sudo apt install -y ros-humble-rqt-common-plugins ros-humble-rqt-image-view ros-humble-rqt-plot ros-humble-rqt-bag
-else
-    echo "rqt is already installed."
-fi
-~~~
-
-
 ### rosboardの起動
 ~~~
 cd rosboard
@@ -110,40 +94,20 @@ source /opt/ros/humble/setup.bash
 ros2 run turtlesim turtle_teleop_key
 ~~~
 
-
 # 便利なツール
 ## Dockerコンテナ内の追加ツール
 ### ファイルブラウザ Nautilus
 ~~~ bash
-if ! command -v nautilus &> /dev/null; then
-    echo "Nautilus is not installed. Installing now..."
-    sudo apt update && sudo apt install -y nautilus
-else
-    echo "Nautilus is already installed."
-fi
-sudo nautilus /aichallenge # Open file browser at /aichallenge in the container
+sudo apt update && sudo apt install -y nautilus
 ~~~
 ### テキストエディター gedit
 ~~~ bash
-if ! command -v gedit &> /dev/null; then
-    echo "gedit is not installed. Installing now..."
-    sudo apt update && sudo apt install -y gedit
-else
-    echo "gedit is already installed."
-fi
-gedit
+sudo apt update && sudo apt install -y gedit
 ~~~
-### ROSのTurtle Sim
-- セットアップ
-~~~ bash
-# Turtle Sim Demo
-# Check if turtlesim is installed, if not, install it
-if ! command -v turtlesim_node &> /dev/null; then
-    echo "turtlesim is not installed. Installing now..."
-    sudo apt update && sudo apt install -y ros-humble-turtlesim
-fi
-~~~ bash
 
+### ROSのTurtle Sim
+~~~ bash
+sudo apt update && sudo apt install -y ros-humble-turtlesim
 ~~~
 
 # ROS2基本コマンド
@@ -183,11 +147,8 @@ docker rm -f $(docker ps -aq)      # ALl Container
 docker rmi -f $(docker images -aq) # All Image
 ~~~
 
-
-
 # Simulator パラメータファイル
 /aichallenge/workspace/src/aichallenge_submit/aichallenge_submit_launch/launch/reference.launch.xml
-
 
 # 関連情報
 
