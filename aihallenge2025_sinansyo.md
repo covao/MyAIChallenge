@@ -55,23 +55,27 @@ cd ~/aichallenge-2025
 ./docker_run.sh dev cpu # Launch the Docker container with CPU support
 ~~~
 
+### Dockerコンテナ起動(Simulator起動なし/セットアップ用)
+~~~ bash
+cd ~/aichallenge-2025
+docker run -it aichallenge-2025-dev-ubuntu:latest
+~~~
 ### 実行中のDockerを保存する
 ~~~ bash
-CID=$(docker ps -q | head -n1)   # get first running container ID
-[ -z "$CID" ] && { echo "No running container found"; exit 1; }
-CNAME=$(docker inspect -f '{{.Name}}' "$CID" | sed 's#^/##')   # get container name
-docker commit "$CID" "${CNAME}:latest"   # save as temporary name
+NAME="aichallenge_new" 
+CID=$(docker ps -a -q | head -n1)   # get first running container ID
+docker commit "$CID" "${NAME}:latest"   # save as temporary name
+docker stop "$CID" # stop the container
 ~~~
 
-### コンテナ停止+最近保存したイメージをAIChallengeに置換
+### 最近保存したイメージをAIChallengeに置換
 ~~~ bash
 NAME="aichallenge-2025-dev-ubuntu" 
-CID=$(docker ps -q | head -n1); [ -n "$CID" ] && docker kill "$CID" # Force kill the first running container
 LatestName=$(docker images --format '{{.Repository}}:{{.Tag}}' | head -n1)
+docker tag "$NAME:latest" "$NAME:backup"  # replace tag
 
-docker tag  "$NAME:latest" "$NAME:backup" # Rename latest to backup 
-docker rmi $NAME:latest # Remove the backup tag
-docker tag echo "$LatestName" aichallenge-2025-dev-ubuntu:latest  # replace tag
+docker rmi $NAME:latest # Remove the tag
+docker tag "$LatestName" "$NAME:latest"  # replace tag
 docker rmi "$LatestName"
 ~~~
 
@@ -83,11 +87,12 @@ CID=$(docker ps -q | head -n1); [ -n "$CID" ] && docker kill "$CID" # Force kill
 
 ## Dockerコンテナ内の操作コマンド
 - AIチャレンジのシミュレータは、Dockerコンテナ内で動作します。
-### Simulatorの起動 #docker
+### Simulatorの起動
 ~~~ bash
+cd /aichallenge
 ./run_evaluation.bash  # launch Autoware from the container
 ~~~
-### Simulatorの車両走行開始 #docker
+### Simulatorの車両走行開始
 ~~~ bash
 ./publish.bash all # Start simulator and publish all topics
 ~~~
@@ -139,6 +144,7 @@ sudo apt update
 sudo apt install -y git python3-pip ros-humble-rmw-fastrtps-cpp
 sudo pip3 install --user tornado simplejpeg
 sudo git clone https://github.com/dheera/rosboard.git ~/rosboard
+cd /aichallenge
 ~~~
 
 ### ROSのrqt
@@ -178,8 +184,9 @@ docker images # List all images
 
 ### 不要なDockerイメージを削除する
 ~~~ bash
-docker rmi $(docker images | grep "^<none>" | awk '{print $3}') # Remove dangling images
+docker image prune -f # Remove unused images
 ~~~
+
 ### Dockerイメージとコンテナを全て強制削除
 ~~~ bash
 docker rm -f $(docker ps -aq)      # ALl Container
