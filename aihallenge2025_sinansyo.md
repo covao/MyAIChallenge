@@ -2,13 +2,14 @@
 ===========
 # 概要
 - この指南書は、Autowareを使った自動運転競技である自動運転AI チャレンジ 2025の開発環境構築やノウハウをまとめたものです。
-- この指南書はAIチャレンジへの取り組みを通じ、ユーザー自身の体験やAIとの対話を通じてアップデートしていきます
--  AIエージェントはこの指南書のコンテキストを理解し、ユーザーの目標達成を支援します。
+- この指南書は自動運転AIチャレンジへの取り組みを通じて、AIとの対話しながらユーザー自身の体験をもとにアップデートしていきます
+-  AIエージェントがこの指南書のコンテキストを深く理解し、ユーザーの目標達成を支援することを想定しています。
+
 # 目標
 - 自動運転AIチャレンジのシミュレータ構築
-- ユーザーが使いやすいシミュレータ環境の構築
+- ユーザーが使いやすいシミュレータ環境の支援
 - Autowareのパラメータを調整し、自動運転AIチャレンジのコースを完走する
-# PC環境
+# 使用したPC環境 
 - OS: Windows 11
 - CPU: Intel(R) Core(TM) Ultra 7 155H (3.80 GHz)
 - NVIDIA GPUなし
@@ -20,7 +21,7 @@
   - スワップサイズ: 32GB
 
 # シミュレータのインストール
-- [自動運転AIチャレンジ 2025 ソースコード一式 GitHub リポジトリ ](https://github.com/AutomotiveAIChallenge/aichallenge-2025)
+- [自動運転AIチャレンジ 2025 ソースコード一式 GitHub リポジトリ ](https://github.com/AutomotiveAIChallenge/aichallenge-2025)参照
 ~~~ bash
 cd ~ 
 git clone https://github.com/AutomotiveAIChallenge/aichallenge-2025.git
@@ -30,6 +31,8 @@ git clone https://github.com/AutomotiveAIChallenge/aichallenge-2025.git
 
 # チートシート
 ## Dockerコンテナ外の操作コマンド
+- AIチャレンジのシミュレータは、Dockerコンテナ内で動作します。
+- Dockerコンテナ外での操作は、主にリポジトリのアップデートやDockerコンテナのビルド、起動に関するものです
 
 ### リポジトリのアップデート
 ~~~ bash
@@ -40,26 +43,51 @@ git pull origin main # Update to latest files
 ~~~
 
 ### Dockerコンテナのビルド
-~~~
-# AI Challenge 2025 Docker Build
+~~~ bash
 cd ~/aichallenge-2025
 ./docker_build.sh dev
 docker images
 ~~~
 
 ### Dockerコンテナ起動(CPU版のAWSIM)
-~~~
+~~~ bash
 cd ~/aichallenge-2025
 ./docker_run.sh dev cpu # Launch the Docker container with CPU support
 ~~~
 
-## Dockerコンテナ内の操作コマンド
+### 実行中のDockerを保存する
+~~~ bash
+CID=$(docker ps -q | head -n1)   # get first running container ID
+[ -z "$CID" ] && { echo "No running container found"; exit 1; }
+CNAME=$(docker inspect -f '{{.Name}}' "$CID" | sed 's#^/##')   # get container name
+docker commit "$CID" "${CNAME}:latest"   # save as temporary name
+~~~
 
-### Simulatorの起動
+### コンテナ停止+最近保存したイメージをAIChallengeに置換
+~~~ bash
+NAME="aichallenge-2025-dev-ubuntu" 
+CID=$(docker ps -q | head -n1); [ -n "$CID" ] && docker kill "$CID" # Force kill the first running container
+LatestName=$(docker images --format '{{.Repository}}:{{.Tag}}' | head -n1)
+
+docker tag  "$NAME:latest" "$NAME:backup" # Rename latest to backup 
+docker rmi $NAME:latest # Remove the backup tag
+docker tag echo "$LatestName" aichallenge-2025-dev-ubuntu:latest  # replace tag
+docker rmi "$LatestName"
+~~~
+
+### 実行中のDockerコンテナを強制停止する
+~~~bash
+CID=$(docker ps -q | head -n1); [ -n "$CID" ] && docker kill "$CID" # Force kill the first running container (if any)
+~~~
+
+
+## Dockerコンテナ内の操作コマンド
+- AIチャレンジのシミュレータは、Dockerコンテナ内で動作します。
+### Simulatorの起動 #docker
 ~~~ bash
 ./run_evaluation.bash  # launch Autoware from the container
 ~~~
-### Simulatorの車両走行開始
+### Simulatorの車両走行開始 #docker
 ~~~ bash
 ./publish.bash all # Start simulator and publish all topics
 ~~~
@@ -70,9 +98,8 @@ cd ~/aichallenge-2025
 
 ### rosboardの起動
 ~~~
-cd rosboard
-source /opt/ros/humble/setup.bash
-./run
+source /opt/ros/humble/setup.bash && \
+cd ~/rosboard && ./run
 ~~~
 ### ROS rqtの起動
 
@@ -94,8 +121,9 @@ source /opt/ros/humble/setup.bash
 ros2 run turtlesim turtle_teleop_key
 ~~~
 
-# 便利なツール
-## Dockerコンテナ内の追加ツール
+# 便利なツールのインストール
+## Dockerコンテナ内に追加するツール
+- AIチャレンジのシミュレータを使いやすくするために、Dockerコンテナ内にいくつかのツールを追加します。
 ### ファイルブラウザ Nautilus
 ~~~ bash
 sudo apt update && sudo apt install -y nautilus
@@ -105,10 +133,25 @@ sudo apt update && sudo apt install -y nautilus
 sudo apt update && sudo apt install -y gedit
 ~~~
 
+## ROSのrosboard
+~~~bash
+sudo apt update
+sudo apt install -y git python3-pip ros-humble-rmw-fastrtps-cpp
+sudo pip3 install --user tornado simplejpeg
+sudo git clone https://github.com/dheera/rosboard.git ~/rosboard
+~~~
+
+### ROSのrqt
+~~~ bash
+sudo apt update
+sudo apt install -y ros-humble-rqt ros-humble-rqt-common-plugins
+~~~
+
 ### ROSのTurtle Sim
 ~~~ bash
 sudo apt update && sudo apt install -y ros-humble-turtlesim
 ~~~
+
 
 # ROS2基本コマンド
 
@@ -132,10 +175,6 @@ ros2 node list # List all nodes
 docker images # List all images
 ~~~
 
-### 実行中のDockerを保存する
-~~~ bash
-docker commit -m "Update Autoware" -a "Your Name" aichallenge2025_dev aichallenge2025_dev_updated
-~~~
 
 ### 不要なDockerイメージを削除する
 ~~~ bash
