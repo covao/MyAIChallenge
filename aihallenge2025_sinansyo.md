@@ -1,10 +1,10 @@
 自動運転 AI Challenge 2025 指南書
-===========
+===
+#自動運転AIチャレンジ #Autoware #ROS2 #LLM #AIエージェント 
 # 概要
 - この指南書は、Autowareを使った自動運転競技である自動運転AI チャレンジ 2025の開発環境構築やノウハウをまとめたものです。
-- この指南書は自動運転AIチャレンジへの取り組みを通じて、AIとの対話しながらユーザー自身の体験をもとにアップデートしていきます
+- この指南書は自動運転AIチャレンジへの取り組みを通じて、AIとの対話を通じ、筆者自身の体験をもとにアップデートしています
 -  AIエージェントがこの指南書のコンテキストを深く理解し、ユーザーの目標達成を支援することを想定しています。
-
 # 目標
 - 自動運転AIチャレンジのシミュレータ構築
 - ユーザーが使いやすいシミュレータ環境の支援
@@ -36,9 +36,7 @@ git clone https://github.com/AutomotiveAIChallenge/aichallenge-2025.git
 
 ### リポジトリのアップデート
 ~~~ bash
-cd ~ # Move to home directory
-git clone https://github.com/AutomotiveAIChallenge/aichallenge-2025.git # Clone repository
-cd aichallenge-2025 # path to aichallenge2025
+cd ~/aichallenge-2025 # path to aichallenge2025
 git pull origin main # Update to latest files
 ~~~
 
@@ -55,6 +53,12 @@ cd ~/aichallenge-2025
 ./docker_run.sh dev cpu # Launch the Docker container with CPU support
 ~~~
 
+### オンライン提出ファイルの生成
+~~~ bash
+cd ~/aichallenge-2025
+./create_submit_file.bash
+~~~
+
 ### Dockerコンテナ起動(Simulator起動なし/セットアップ用)
 ~~~ bash
 cd ~/aichallenge-2025
@@ -68,13 +72,12 @@ docker commit "$CID" "${NAME}:latest"   # save as temporary name
 docker stop "$CID" # stop the container
 ~~~
 
-### 最近保存したイメージをAIChallengeに置換
+### 最近保存したイメージのコンテナ名を置換
 ~~~ bash
 NAME="aichallenge-2025-dev-ubuntu" 
 LatestName=$(docker images --format '{{.Repository}}:{{.Tag}}' | head -n1)
 docker tag "$NAME:latest" "$NAME:backup"  # replace tag
 
-docker rmi $NAME:latest # Remove the tag
 docker tag "$LatestName" "$NAME:latest"  # replace tag
 docker rmi "$LatestName"
 ~~~
@@ -87,16 +90,18 @@ CID=$(docker ps -q | head -n1); [ -n "$CID" ] && docker kill "$CID" # Force kill
 
 ## Dockerコンテナ内の操作コマンド
 - AIチャレンジのシミュレータは、Dockerコンテナ内で動作します。
+### Autowareのビルド
+~~~bash
+cd /aichallenge
+./build_autoware.bash
+~~~
+
 ### Simulatorの起動
 ~~~ bash
 cd /aichallenge
-./run_evaluation.bash  # launch Autoware from the container
-~~~
-### Simulatorの車両走行開始
-~~~ bash
 ./publish.bash all # Start simulator and publish all topics
 ~~~
-### Simulatorのプロセス終了
+### Simulatorのプロセス強制終了
 ~~~ bash
 ./pkill_all.bash # kill all processes
 ~~~
@@ -160,7 +165,7 @@ sudo apt update && sudo apt install -y ros-humble-turtlesim
 
 
 # ROS2基本コマンド
-
+ROS2の基本的なコマンドを紹介します。
 ### Source ROS2 Humbleの起動
 ~~~
 source /opt/ros/humble/setup.bash
@@ -194,7 +199,7 @@ docker rmi -f $(docker images -aq) # All Image
 ~~~
 
 # Simulator パラメータファイル
-/aichallenge/workspace/src/aichallenge_submit/aichallenge_submit_launch/launch/reference.launch.xml
+[reference.launch.xml](https://github.com/AutomotiveAIChallenge/aichallenge-2025/blob/main/aichallenge/workspace/src/aichallenge_submit/aichallenge_submit_launch/launch/reference.launch.xml)
 
 # 関連情報
 
